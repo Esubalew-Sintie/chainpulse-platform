@@ -1,0 +1,28 @@
+# Binaries
+*.exe
+*.out
+*.test
+
+# Go modules
+vendor/
+
+# Env files
+.env
+firebase-adminsdk.json
+private_key.pem
+public_key.pem
+
+# Solidity artifacts
+artifacts/
+cache/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/

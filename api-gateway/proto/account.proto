@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package account;
+
+option go_package = "github.com/chainpulse/backend/api-gateway/proto/gen;accountpb";
+
+import "google/protobuf/empty.proto";
+
+service AccountService {
+  rpc CreateBuyer(CreateBuyerRequest) returns (google.protobuf.Empty);
+  rpc LoginBuyer(LoginRequest) returns (LoginResponse);
+  rpc GetBuyerByID(GetByIDRequest) returns (BuyerResponse);
+  rpc UpdateBuyer(UpdateBuyerRequest) returns (google.protobuf.Empty);
+  rpc DeleteBuyer(GetByIDRequest) returns (google.protobuf.Empty);
+
+  rpc GetSettings(google.protobuf.Empty) returns (SettingsResponse);
+  rpc UpdateSettings(SettingsRequest) returns (google.protobuf.Empty);
+  rpc InsertSettings(SettingsRequest) returns (google.protobuf.Empty);
+}
+
+message CreateBuyerRequest {
+  string email = 1;
+  string password = 2;
+  string phone_number = 3;
+  string wallet_address = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string address = 7;
+  string profile_picture_url = 8;
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string buyer_id = 1;
+  string email = 2;
+  string phone_number = 3;
+}
+
+message GetByIDRequest {
+  string id = 1;
+}
+
+message BuyerResponse {
+  string buyer_id = 1;
+  string email = 2;
+  string phone_number = 3;
+  string wallet_address = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string address = 7;
+  string profile_picture_url = 8;
+  string badge = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message UpdateBuyerRequest {
+  string buyer_id = 1;
+  string email = 2;
+  string phone_number = 3;
+  string wallet_address = 4;
+  string first_name = 5;
+  string last_name = 6;
+  string address = 7;
+  string profile_picture_url = 8;
+}
+
+message SettingsRequest {
+  int32 badges_price = 1;
+  string registration_reward = 2;
+  string rating_reward = 3;
+  string purchasing_reward = 4;
+  double coin_to_currency_rate = 5;
+  string delivery_price_rules = 6; // JSON string
+}
+
+message SettingsResponse {
+  string setting_id = 1;
+  int32 badges_price = 2;
+  string registration_reward = 3;
+  string rating_reward = 4;
+  string purchasing_reward = 5;
+  double coin_to_currency_rate = 6;
+  string delivery_price_rules = 7;
+  string created_at = 8;
+  string updated_at = 9;
+}
