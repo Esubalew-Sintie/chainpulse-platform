@@ -7,7 +7,7 @@ import (
 
 	"github.com/chainpulse/backend/account/internal/models"
 	service "github.com/chainpulse/backend/account/internal/services"
-	accountpb "github.com/chainpulse/backend/account/proto"
+	accountpb "github.com/chainpulse/backend/account/proto/gen"
 	"github.com/gogo/status"
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
@@ -24,22 +24,44 @@ func NewAccountGrpcHandler(authSvc service.IAuthSvc) *AccountGrpcHandler {
 }
 
 func (h *AccountGrpcHandler) CreateBuyer(ctx context.Context, req *accountpb.CreateBuyerRequest) (*emptypb.Empty, error) {
-	// Validation
-	if req.PhoneNumber == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "phone number is required")
-	}
-	if req.Password == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "password is required")
-	}
-	if req.Email == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "email is required")
+	// WALLET LOGIN ONLY
+	if req.WalletAddress != "" && req.Password == "" && req.PhoneNumber == "" {
+		input := &models.Buyer{
+			WalletAddress: &req.WalletAddress,
+		}
+		if err := h.authSvc.CreateWalletOnlyBuyer(ctx, input); err != nil {
+			// log the error
+			// you can use your preferred logger, here using standard log for example
+			// log.Printf("CreateWalletOnlyBuyer error: %v", err)
+			// or if you have a logger in the handler, use that
+			// h.logger.Errorf("CreateWalletOnlyBuyer error: %v", err)
+			println("CreateWalletOnlyBuyer error:", err.Error())
+			return nil, err
+		}
+		return &emptypb.Empty{}, nil
 	}
 
-	// Prepare input
+	// PHONE & PASSWORD LOGIN FLOW
+	if req.PhoneNumber == "" {
+		err := status.Errorf(codes.InvalidArgument, "phone number is required")
+		println("CreateBuyer error:", err.Error())
+		return nil, err
+	}
+	if req.Password == "" {
+		err := status.Errorf(codes.InvalidArgument, "password is required")
+		println("CreateBuyer error:", err.Error())
+		return nil, err
+	}
+	if req.Email == "" {
+		err := status.Errorf(codes.InvalidArgument, "email is required")
+		println("CreateBuyer error:", err.Error())
+		return nil, err
+	}
+
 	input := &models.Buyer{
 		Email:             &req.Email,
 		Password:          req.Password,
-		PhoneNumber:       req.PhoneNumber,
+		PhoneNumber:       &req.PhoneNumber,
 		WalletAddress:     &req.WalletAddress,
 		FirstName:         &req.FirstName,
 		LastName:          &req.LastName,
@@ -48,8 +70,10 @@ func (h *AccountGrpcHandler) CreateBuyer(ctx context.Context, req *accountpb.Cre
 	}
 
 	if err := h.authSvc.CreateBuyer(ctx, input); err != nil {
+		println("CreateBuyer error:", err.Error())
 		return nil, err
 	}
+
 	return &emptypb.Empty{}, nil
 }
 
@@ -61,7 +85,7 @@ func (h *AccountGrpcHandler) LoginBuyer(ctx context.Context, req *accountpb.Logi
 	return &accountpb.LoginResponse{
 		BuyerId:     buyer.ID.String(),
 		Email:       *buyer.Email,
-		PhoneNumber: buyer.PhoneNumber,
+		PhoneNumber: *buyer.PhoneNumber,
 	}, nil
 }
 
@@ -78,7 +102,34 @@ func (h *AccountGrpcHandler) GetBuyerByID(ctx context.Context, req *accountpb.Ge
 	return &accountpb.BuyerResponse{
 		BuyerId:           buyer.ID.String(),
 		Email:             ptrToStr(buyer.Email),
-		PhoneNumber:       buyer.PhoneNumber,
+		PhoneNumber:       *buyer.PhoneNumber,
+		WalletAddress:     ptrToStr(buyer.WalletAddress),
+		FirstName:         ptrToStr(buyer.FirstName),
+		LastName:          ptrToStr(buyer.LastName),
+		Address:           ptrToStr(buyer.Address),
+		ProfilePictureUrl: ptrToStr(buyer.ProfilePictureURL),
+		Badge:             string(buyer.Badge),
+		CreatedAt:         buyer.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:         buyer.UpdatedAt.Format(time.RFC3339),
+	}, nil
+}
+func (h *AccountGrpcHandler) GetBuyerByWallet(ctx context.Context, req *accountpb.GetByWalletRequest) (*accountpb.BuyerResponse, error) {
+	if req.WalletAddress == "" {
+		return nil, status.Errorf(codes.InvalidArgument, "wallet address is required")
+	}
+
+	buyer, err := h.authSvc.GetBuyerByWallet(ctx, req.WalletAddress)
+	if err != nil {
+		return nil, err
+	}
+	if buyer == nil {
+		return nil, status.Errorf(codes.NotFound, "buyer with wallet address %s not found", req.WalletAddress)
+	}
+
+	return &accountpb.BuyerResponse{
+		BuyerId:           buyer.ID.String(),
+		Email:             ptrToStr(buyer.Email),
+		PhoneNumber:       ptrToStr(buyer.PhoneNumber),
 		WalletAddress:     ptrToStr(buyer.WalletAddress),
 		FirstName:         ptrToStr(buyer.FirstName),
 		LastName:          ptrToStr(buyer.LastName),
@@ -98,7 +149,7 @@ func (h *AccountGrpcHandler) UpdateBuyer(ctx context.Context, req *accountpb.Upd
 	input := &models.Buyer{
 		ID:                id,
 		Email:             &req.Email,
-		PhoneNumber:       req.PhoneNumber,
+		PhoneNumber:       &req.PhoneNumber,
 		WalletAddress:     &req.WalletAddress,
 		FirstName:         &req.FirstName,
 		LastName:          &req.LastName,

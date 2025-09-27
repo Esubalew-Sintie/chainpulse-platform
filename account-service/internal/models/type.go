@@ -15,11 +15,11 @@ const (
 )
 
 type Buyer struct {
-	ID           uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"buyer_id"`
+	ID                uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"buyer_id"`
 	Email             *string   `gorm:"type:varchar(100);unique" json:"email,omitempty"`
-	PhoneNumber       string    `gorm:"type:varchar(20);not null;unique" json:"phone_number"`
-	Password     string    `gorm:"type:varchar(255)" json:"-"`
-	WalletAddress     *string   `gorm:"type:varchar(42);unique" json:"wallet_address,omitempty"`
+	PhoneNumber       *string   `gorm:"type:varchar(20);unique" json:"phone_number,omitempty"`
+	Password          string    `gorm:"type:varchar(255)" json:"-"`
+	WalletAddress     *string   `gorm:"type:varchar(255);unique" json:"wallet_address,omitempty"`
 	FirstName         *string   `gorm:"type:varchar(100)" json:"first_name,omitempty"`
 	LastName          *string   `gorm:"type:varchar(100)" json:"last_name,omitempty"`
 	Address           *string   `gorm:"type:text" json:"address,omitempty"`
@@ -31,7 +31,7 @@ type Buyer struct {
 }
 
 type Settings struct {
-	ID          uuid.UUID       `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"setting_id"`
+	ID                 uuid.UUID       `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"setting_id"`
 	BadgesPrice        int             `json:"badges_price"`
 	RegistrationReward string          `gorm:"type:varchar(255)" json:"registration_reward"`
 	RatingReward       string          `gorm:"type:varchar(255)" json:"rating_reward"`

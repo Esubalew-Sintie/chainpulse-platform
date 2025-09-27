@@ -12,7 +12,7 @@ import (
 	"github.com/chainpulse/backend/account/internal/pkgs/logger"
 	"github.com/chainpulse/backend/account/internal/routes/handlers"
 	service "github.com/chainpulse/backend/account/internal/services"
-	accountpb "github.com/chainpulse/backend/account/proto"
+	accountpb "github.com/chainpulse/backend/account/proto/gen"
 	"google.golang.org/grpc"
 )
 
@@ -46,8 +46,17 @@ func main() {
 		os.Exit(1)
 	}
 	repo := postgresrepo.NewRepo(db) // your actual repo constructor
+	if repo == nil {
+		logger.Error("failed to create repository")
+		os.Exit(1)
+	}
 	svc := service.NewAuthService(repo)
+	if svc == nil {
+		logger.Error("failed to create auth service")
+		os.Exit(1)
+	}
 	handler := handlers.NewAccountGrpcHandler(svc)
+
 
 	listener, err := net.Listen("tcp", ":50051")
 	if err != nil {

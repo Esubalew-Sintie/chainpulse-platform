@@ -1,0 +1,158 @@
+syntax = "proto3";
+
+package product;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// Message definitions
+
+message Category {
+  string category_id = 1;
+  string name = 2;
+  string parent_category_id = 3;
+  string image_url = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message Product {
+  string product_id = 1;
+  string name = 2;
+  string description = 3;
+  string main_category_id = 4;
+  string sub_category_id = 5;
+  string badge_type = 6;
+  bool is_accept_offer = 7;
+  bool is_for_exclusive_access = 8;
+  string sku = 9;
+  string product_images_json = 10;    // JSON encoded string
+  string thumbnail_images_json = 11;  // JSON encoded string
+  double base_price = 12;
+  string discount_type = 13;
+  double discount_value = 14;
+  bool allow_offers = 15;
+  string attributes_json = 16;        // JSON encoded string for flexible product attributes
+  google.protobuf.Timestamp created_at = 17;
+  google.protobuf.Timestamp updated_at = 18;
+}
+
+message ProductSize {
+  string size_id = 1;
+  string product_id = 2;
+  string size = 3;
+  string name_json = 4;  // JSON encoded array [{color:"black",quantity:5}]
+}
+
+message ProductReview {
+  string review_id = 1;
+  string product_id = 2;
+  string buyer_id = 3;
+  int32 rating = 4;
+  string review_text = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+message PriceOffer {
+  string offer_id = 1;
+  string buyer_id = 2;
+  string product_id = 3;
+  double offered_price = 4;
+  string status = 5;  // pending, accepted, rejected
+  int32 count = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+message Wishlist {
+  string wishlist_id = 1;
+  string buyer_id = 2;
+  string product_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// Requests
+
+message IdRequest {
+  string id = 1;
+}
+
+message BuyerIdRequest {
+  string buyer_id = 1;
+}
+
+message ProductIdRequest {
+  string product_id = 1;
+}
+
+message WishlistRemoveRequest {
+  string buyer_id = 1;
+  string product_id = 2;
+}
+
+// Responses
+
+message CategoriesResponse {
+  repeated Category categories = 1;
+}
+
+message CategoryResponse {
+  Category category = 1;
+}
+
+message ProductsResponse {
+  repeated Product products = 1;
+}
+
+message ProductResponse {
+  Product product = 1;
+}
+
+message ProductSizesResponse {
+  repeated ProductSize sizes = 1;
+}
+
+message ProductReviewsResponse {
+  repeated ProductReview reviews = 1;
+}
+
+message PriceOffersResponse {
+  repeated PriceOffer offers = 1;
+}
+
+message WishlistsResponse {
+  repeated Wishlist wishlists = 1;
+}
+
+// Service definition
+
+service ProductService {
+
+  // Category
+  rpc CreateCategory(Category) returns (CategoryResponse);
+  rpc GetCategoryByID(IdRequest) returns (CategoryResponse);
+  rpc GetAllCategories(google.protobuf.Empty) returns (CategoriesResponse);
+
+  // Product
+  rpc CreateProduct(Product) returns (ProductResponse);
+  rpc GetProductByID(IdRequest) returns (ProductResponse);
+  rpc GetAllProducts(google.protobuf.Empty) returns (ProductsResponse);
+  rpc UpdateProduct(Product) returns (google.protobuf.Empty);
+  rpc DeleteProduct(IdRequest) returns (google.protobuf.Empty);
+
+  // Product Size
+  rpc AddProductSize(ProductSize) returns (google.protobuf.Empty);
+  rpc GetSizesByProductID(ProductIdRequest) returns (ProductSizesResponse);
+
+  // Reviews
+  rpc AddReview(ProductReview) returns (google.protobuf.Empty);
+  rpc GetReviewsByProductID(ProductIdRequest) returns (ProductReviewsResponse);
+
+  // Offers
+  rpc CreatePriceOffer(PriceOffer) returns (google.protobuf.Empty);
+  rpc GetOffersByProductID(ProductIdRequest) returns (PriceOffersResponse);
+
+  // Wishlist
+  rpc AddToWishlist(Wishlist) returns (google.protobuf.Empty);
+  rpc RemoveFromWishlist(WishlistRemoveRequest) returns (google.protobuf.Empty);
+  rpc GetWishlistByBuyerID(BuyerIdRequest) returns (WishlistsResponse);
+}

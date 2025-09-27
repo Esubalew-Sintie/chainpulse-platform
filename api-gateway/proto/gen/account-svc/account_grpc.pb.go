@@ -20,14 +20,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	AccountService_CreateBuyer_FullMethodName    = "/account.AccountService/CreateBuyer"
-	AccountService_LoginBuyer_FullMethodName     = "/account.AccountService/LoginBuyer"
-	AccountService_GetBuyerByID_FullMethodName   = "/account.AccountService/GetBuyerByID"
-	AccountService_UpdateBuyer_FullMethodName    = "/account.AccountService/UpdateBuyer"
-	AccountService_DeleteBuyer_FullMethodName    = "/account.AccountService/DeleteBuyer"
-	AccountService_GetSettings_FullMethodName    = "/account.AccountService/GetSettings"
-	AccountService_UpdateSettings_FullMethodName = "/account.AccountService/UpdateSettings"
-	AccountService_InsertSettings_FullMethodName = "/account.AccountService/InsertSettings"
+	AccountService_CreateBuyer_FullMethodName      = "/account.AccountService/CreateBuyer"
+	AccountService_LoginBuyer_FullMethodName       = "/account.AccountService/LoginBuyer"
+	AccountService_GetBuyerByID_FullMethodName     = "/account.AccountService/GetBuyerByID"
+	AccountService_GetBuyerByWallet_FullMethodName = "/account.AccountService/GetBuyerByWallet"
+	AccountService_UpdateBuyer_FullMethodName      = "/account.AccountService/UpdateBuyer"
+	AccountService_DeleteBuyer_FullMethodName      = "/account.AccountService/DeleteBuyer"
+	AccountService_GetSettings_FullMethodName      = "/account.AccountService/GetSettings"
+	AccountService_UpdateSettings_FullMethodName   = "/account.AccountService/UpdateSettings"
+	AccountService_InsertSettings_FullMethodName   = "/account.AccountService/InsertSettings"
 )
 
 // AccountServiceClient is the client API for AccountService service.
@@ -37,6 +38,7 @@ type AccountServiceClient interface {
 	CreateBuyer(ctx context.Context, in *CreateBuyerRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	LoginBuyer(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	GetBuyerByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*BuyerResponse, error)
+	GetBuyerByWallet(ctx context.Context, in *GetByWalletRequest, opts ...grpc.CallOption) (*BuyerResponse, error)
 	UpdateBuyer(ctx context.Context, in *UpdateBuyerRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	DeleteBuyer(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	GetSettings(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*SettingsResponse, error)
@@ -73,6 +75,15 @@ func (c *accountServiceClient) LoginBuyer(ctx context.Context, in *LoginRequest,
 func (c *accountServiceClient) GetBuyerByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*BuyerResponse, error) {
 	out := new(BuyerResponse)
 	err := c.cc.Invoke(ctx, AccountService_GetBuyerByID_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *accountServiceClient) GetBuyerByWallet(ctx context.Context, in *GetByWalletRequest, opts ...grpc.CallOption) (*BuyerResponse, error) {
+	out := new(BuyerResponse)
+	err := c.cc.Invoke(ctx, AccountService_GetBuyerByWallet_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +142,7 @@ type AccountServiceServer interface {
 	CreateBuyer(context.Context, *CreateBuyerRequest) (*emptypb.Empty, error)
 	LoginBuyer(context.Context, *LoginRequest) (*LoginResponse, error)
 	GetBuyerByID(context.Context, *GetByIDRequest) (*BuyerResponse, error)
+	GetBuyerByWallet(context.Context, *GetByWalletRequest) (*BuyerResponse, error)
 	UpdateBuyer(context.Context, *UpdateBuyerRequest) (*emptypb.Empty, error)
 	DeleteBuyer(context.Context, *GetByIDRequest) (*emptypb.Empty, error)
 	GetSettings(context.Context, *emptypb.Empty) (*SettingsResponse, error)
@@ -151,6 +163,9 @@ func (UnimplementedAccountServiceServer) LoginBuyer(context.Context, *LoginReque
 }
 func (UnimplementedAccountServiceServer) GetBuyerByID(context.Context, *GetByIDRequest) (*BuyerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBuyerByID not implemented")
+}
+func (UnimplementedAccountServiceServer) GetBuyerByWallet(context.Context, *GetByWalletRequest) (*BuyerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBuyerByWallet not implemented")
 }
 func (UnimplementedAccountServiceServer) UpdateBuyer(context.Context, *UpdateBuyerRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateBuyer not implemented")
@@ -230,6 +245,24 @@ func _AccountService_GetBuyerByID_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AccountServiceServer).GetBuyerByID(ctx, req.(*GetByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AccountService_GetBuyerByWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByWalletRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AccountServiceServer).GetBuyerByWallet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AccountService_GetBuyerByWallet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AccountServiceServer).GetBuyerByWallet(ctx, req.(*GetByWalletRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -342,6 +375,10 @@ var AccountService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBuyerByID",
 			Handler:    _AccountService_GetBuyerByID_Handler,
+		},
+		{
+			MethodName: "GetBuyerByWallet",
+			Handler:    _AccountService_GetBuyerByWallet_Handler,
 		},
 		{
 			MethodName: "UpdateBuyer",

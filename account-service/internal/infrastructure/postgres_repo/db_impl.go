@@ -28,6 +28,23 @@ func (r *Repo) GetBuyerByID(ctx context.Context, id uuid.UUID) (*models.Buyer, e
 	}
 	return &buyer, nil
 }
+func (r *Repo) GetBuyerByWallet(ctx context.Context, wallet string) (*models.Buyer, error) {
+	var buyer models.Buyer
+	err := r.db.WithContext(ctx).
+		Where("wallet_address = ?", wallet).
+		First(&buyer).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil // Important: return nil instead of empty struct
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return &buyer, nil
+}
+
+
 
 func (r *Repo) GetBuyerByEmail(ctx context.Context, email string) (*models.Buyer, error) {
 	var buyer models.Buyer

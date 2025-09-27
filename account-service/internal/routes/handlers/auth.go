@@ -30,7 +30,7 @@ func (h *Handlers) CreateBuyer(c *gin.Context) {
 		FirstName:   &input.FirstName,
 		LastName:    &input.LastName,
 		Email:       &input.Email,
-		PhoneNumber: input.Phone,
+		PhoneNumber: &input.Phone,
 		Password:    input.Password, // hash later
 	}
 

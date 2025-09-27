@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/chainpulse/backend/account/internal/models"
 	"github.com/google/uuid"
@@ -12,11 +13,12 @@ import (
 )
 
 var (
-	ErrBuyerExistsByEmail = errors.New("buyer with this email already exists")
-	ErrBuyerExistsByPhone = errors.New("buyer with this phone already exists")
-	ErrInvalidBuyerData   = errors.New("invalid buyer data")
-	ErrBuyerNotFound      = errors.New("buyer not found")
-	ErrInvalidCredential  = errors.New("invalid email or password")
+	ErrBuyerExistsByEmail  = errors.New("buyer with this email already exists")
+	ErrBuyerExistsByPhone  = errors.New("buyer with this phone already exists")
+	ErrBuyerExistsByWallet = errors.New("buyer with this wallet address already exists")
+	ErrInvalidBuyerData    = errors.New("invalid buyer data")
+	ErrBuyerNotFound       = errors.New("buyer not found")
+	ErrInvalidCredential   = errors.New("invalid email or password")
 )
 
 // CreateBuyer validates buyer info and checks existence before creating
@@ -25,7 +27,7 @@ func (s *authService) CreateBuyer(ctx context.Context, input *models.Buyer) erro
 	if input == nil {
 		return ErrInvalidBuyerData
 	}
-	if input.PhoneNumber == "" {
+	if input.PhoneNumber == nil || *input.PhoneNumber == "" {
 		return errors.New("phone number is required")
 	}
 	if input.Password == "" {
@@ -50,7 +52,7 @@ func (s *authService) CreateBuyer(ctx context.Context, input *models.Buyer) erro
 	}
 
 	// 🔍 Check if buyer exists by phone
-	existingByPhone, err := s.repo.GetBuyerByPhone(ctx, input.PhoneNumber)
+	existingByPhone, err := s.repo.GetBuyerByPhone(ctx, *input.PhoneNumber)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return fmt.Errorf("failed to check existing buyer by phone: %w", err)
 	}
@@ -65,6 +67,26 @@ func (s *authService) CreateBuyer(ctx context.Context, input *models.Buyer) erro
 	}
 	input.Password = hashedPassword
 
+	return s.repo.CreateBuyer(ctx, input)
+}
+func (s *authService) CreateWalletOnlyBuyer(ctx context.Context, input *models.Buyer) error {
+	if input == nil || input.WalletAddress == nil || *input.WalletAddress == "" {
+		log.Println("wallet address is required for wallet-only buyer creation")
+		return errors.New("wallet address is required")
+	}
+
+	// Check if buyer exists by wallet
+	existing, err := s.repo.GetBuyerByWallet(ctx, *input.WalletAddress)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		log.Println("failed to check buyer by wallet: %v", err)
+		return fmt.Errorf("failed to check buyer by wallet: %w", err)
+	}
+	if existing != nil {
+		log.Println("buyer with wallet address %s already exists", *input.WalletAddress,"existing: ",*existing)
+		return ErrBuyerExistsByWallet
+	}
+
+	log.Println("creating wallet-only buyer with wallet address %s", *input.WalletAddress)
 	return s.repo.CreateBuyer(ctx, input)
 }
 
@@ -87,6 +109,9 @@ func (s *authService) LoginBuyer(ctx context.Context, email, password string) (*
 
 func (s *authService) GetBuyerByID(ctx context.Context, id uuid.UUID) (*models.Buyer, error) {
 	return s.repo.GetBuyerByID(ctx, id)
+}
+func (s *authService) GetBuyerByWallet(ctx context.Context, walletAddress string) (*models.Buyer, error) {
+	return s.repo.GetBuyerByWallet(ctx, walletAddress)
 }
 
 func (s *authService) GetBuyerByEmail(ctx context.Context, email string) (*models.Buyer, error) {

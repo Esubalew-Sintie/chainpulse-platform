@@ -10,9 +10,11 @@ import (
 
 type IAuthSvc interface {
 	CreateBuyer(ctx context.Context, input *models.Buyer) error
+	CreateWalletOnlyBuyer(ctx context.Context, input *models.Buyer) error 
 	LoginBuyer(ctx context.Context, email, password string) (*models.Buyer, error)
 	GetBuyerByID(ctx context.Context, id uuid.UUID) (*models.Buyer, error)
 	GetBuyerByEmail(ctx context.Context, email string) (*models.Buyer, error)
+	GetBuyerByWallet(ctx context.Context, walletAddress string) (*models.Buyer, error)
 	UpdateBuyer(ctx context.Context, input *models.Buyer) error
 	DeleteBuyer(ctx context.Context, id uuid.UUID) error
 

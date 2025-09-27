@@ -6,10 +6,12 @@ option go_package = "github.com/chainpulse/backend/api-gateway/proto/gen;account
 
 import "google/protobuf/empty.proto";
 
+
 service AccountService {
   rpc CreateBuyer(CreateBuyerRequest) returns (google.protobuf.Empty);
   rpc LoginBuyer(LoginRequest) returns (LoginResponse);
   rpc GetBuyerByID(GetByIDRequest) returns (BuyerResponse);
+  rpc GetBuyerByWallet(GetByWalletRequest) returns (BuyerResponse);
   rpc UpdateBuyer(UpdateBuyerRequest) returns (google.protobuf.Empty);
   rpc DeleteBuyer(GetByIDRequest) returns (google.protobuf.Empty);
 
@@ -18,6 +20,9 @@ service AccountService {
   rpc InsertSettings(SettingsRequest) returns (google.protobuf.Empty);
 }
 
+message GetByWalletRequest {
+  string wallet_address = 1;
+}
 message CreateBuyerRequest {
   string email = 1;
   string password = 2;
